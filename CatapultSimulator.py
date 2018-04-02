@@ -25,6 +25,26 @@ titlefont = pygame.font.SysFont("monospace", 50)
 background = pygame.Surface(screen.get_size()).convert()
 background.fill(DARKBLUE)
 key = ""
+helpMessage1 = ["Calculate Function:",
+               "You may calculate the initial velocity of a projectile given",
+               "2 different data sets (x-range and y-range) if the initial",
+               "conditions are similar.",
+                "",
+               "For example - given that you launch a projectile from the",
+               "ground and it goes 4.5m, and launch the same projectile using",
+               "the same conditions 2m off the ground and it lands 5.3m, you",
+               "would have x1 = 4.5m, y1 = 0, x2 = 5.3m, y2 = 2m. Plugging this",
+               "into the program, you calculate the inital velocity of 7.6m/s",
+               "at an angle of 65 degrees above the horizontal."]
+helpMessage2 = ["Simulate Function:",
+               "You may simulate the path of a projectile given the initial",
+               "velocity and initial height of the object.",
+                "",
+               "For example - if you launch a projectile at 7.6m/s and 65 ",
+               "degrees above the horizontal at 2m off the ground, you will",
+               "see the program compute range and time of the path. The output",
+               "displays the totaltime of travel, y-range (maximum height)",
+               "of the path, and (x-range)of the path."]
 
 #our data: x1 = 4.58, y1 = 0.1911, x2 = 5.172, y2 = 0.9531
 def get_velocity(x1, y1, x2, y2, g = 9.8):
@@ -139,11 +159,12 @@ class Textbox():
         self.text = text
 
 class Button():
-    def __init__(self,x,y,width,length,label):
+    def __init__(self,x,y,width,length,label,color = LIGHTBLUE):
         self.label = label
         self.x = x
         self.y = y
         self.box = pygame.Rect(x, y, width, length)
+        self.color = color
 
     def update(self):
         click = False
@@ -151,7 +172,7 @@ class Button():
             click = True
             pygame.draw.rect(screen, GREY, self.box, 0)
         else:
-            pygame.draw.rect(screen, LIGHTBLUE, self.box, 0)
+            pygame.draw.rect(screen, self.color, self.box, 0)
         label = font.render(self.label, 1, BLACK)
         screen.blit(label, (self.x + 5, self.y + 3))
         return click
@@ -201,6 +222,7 @@ x2Box = Textbox(25,80,200,25,"x2(m): ")
 y2Box = Textbox(25,110,200,25,"y2(m): ")
 v0output = Textbox(25,140,200,25,"v0(m/s): ",False)
 angleoutput = Textbox(25,170,200,25,"angle(°): ",False)
+helpBox = Textbox(25,25,430,430,helpMessage1, False);
 
 v0Box = Textbox(375,20,200,25,"v0(m/s): ")
 angleBox = Textbox(375,50,200,25,"angle(°): ")
@@ -210,6 +232,8 @@ xrangeoutput = Textbox(375,110,200,25,"x-range(m): ", False)
 #loop managing booleans
 simulating = False
 application = True
+helpText = False
+page1 = True
 
 #title
 titleLabel = titlefont.render("CATAPULT SIMULATOR", 1, WHITE)
@@ -219,13 +243,43 @@ creditsLabel = font.render("Susan Chen, Brennan Lou, Shuyu Liu, Karaleen Pang", 
 calculateButton = Button(25,200,200,25,"CALCULATE")
 simulateButton = Button(375,140,200,25,"SIMULATE")
 backButton = Button(375,260,200,25,"BACK")
+helpButton = Button(190,350,200,25,"HELP")
+helpBackButton = Button(455,325,100,25,"BACK")
+helpNextButton = Button(300,325,100,25,"NEXT",WHITE)
+helpPrevButton = Button(180,325,100,25,"PREV",WHITE)
 
 while application:
     clock.tick(120)
     pygame.display.update()
     screen.blit(background, (0,0))
 
-    if not simulating:
+    if helpText:
+        line = 0;
+        if helpBackButton.update():
+            helpText = False
+        if page1:
+            if helpNextButton.update():
+                page1 = False
+            for i in helpMessage1:
+                if line == 0:
+                    messageLabel = font.render(i, 1, LIGHTBLUE)
+                else:
+                    messageLabel = font.render(i, 1, WHITE)
+                screen.blit(messageLabel, (25, 25 + line * 25))
+                line += 1
+        else:
+            if helpPrevButton.update():
+                page1 = True
+            for i in helpMessage2:
+                if line == 0:
+                    messageLabel = font.render(i, 1, LIGHTBLUE)
+                else:
+                    messageLabel = font.render(i, 1, WHITE)
+                screen.blit(messageLabel, (25, 25 + line * 25))
+                line += 1
+            
+        
+    elif not simulating:
         if simulateButton.update() and v0Box.text != "" and angleBox.text != "" and heightBox.text != "":
             xrangeoutput.text = ("{:.4f}".format(get_xrange(float(heightBox.text),float(v0Box.text),float(angleBox.text)/57.2958)))
             ball = Catapult(float(v0Box.text), float(angleBox.text), float(heightBox.text))
@@ -238,6 +292,11 @@ while application:
                 angleoutput.text = ("{:.4f}".format(velocity[1] * 57.2958))
             except:
                 pass
+            
+        if helpButton.update():
+            helpText = True
+            page1 = True
+            
         x1Box.draw(key)
         y1Box.draw(key)
         x2Box.draw(key)
@@ -246,23 +305,35 @@ while application:
         v0output.draw(key)
         screen.blit(titleLabel, (25, 250))
         screen.blit(creditsLabel, (75, 300))
-
+        
+        v0Box.draw(key)
+        angleBox.draw(key)
+        heightBox.draw(key)
+        xrangeoutput.draw(key)
+    
+        key = ""
+    
+        if simulateButton.update() and v0Box.text != "" and angleBox.text != "" and heightBox.text != "":
+            xrangeoutput.text = ("{:.4f}".format(get_xrange(float(heightBox.text),float(v0Box.text),float(angleBox.text)/57.2958)))
+            ball = Catapult(float(v0Box.text), float(angleBox.text), float(heightBox.text))
+            
     else:
         ball.update()
         ball.draw()
         draw_graph(ball.xrange,ball.yrange)
         if backButton.update(): simulating = False
 
-    if simulateButton.update() and v0Box.text != "" and angleBox.text != "" and heightBox.text != "":
-        xrangeoutput.text = ("{:.4f}".format(get_xrange(float(heightBox.text),float(v0Box.text),float(angleBox.text)/57.2958)))
-        ball = Catapult(float(v0Box.text), float(angleBox.text), float(heightBox.text))
+        v0Box.draw(key)
+        angleBox.draw(key)
+        heightBox.draw(key)
+        xrangeoutput.draw(key)
+    
+        key = ""
+    
+        if simulateButton.update() and v0Box.text != "" and angleBox.text != "" and heightBox.text != "":
+            xrangeoutput.text = ("{:.4f}".format(get_xrange(float(heightBox.text),float(v0Box.text),float(angleBox.text)/57.2958)))
+            ball = Catapult(float(v0Box.text), float(angleBox.text), float(heightBox.text))
 
-    v0Box.draw(key)
-    angleBox.draw(key)
-    heightBox.draw(key)
-    xrangeoutput.draw(key)
-
-    key = ""
 
     for event in pygame.event.get():
         if event.type == pygame.KEYDOWN:
