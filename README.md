@@ -3,7 +3,9 @@ CatapultSimulator is made by: Susan Chen and Brennan Liu for Earl Haig's grade 1
 
 Instruction:
 - ensure the latest version of Python and the perspective Pygame is installed
+- run "pip install Pygame" in terminal if pygame is not installed
 - run CatapultSimulator.py
+Alternatively, you may find an exectuable inside "build\exe.win32-3.6\CatapultSimulator.exe"
 
 Calculate Function:
 You may calculate the initial velocity of a projectile given 2 different data sets (x-range and y-range) if the initial conditions are similar.
